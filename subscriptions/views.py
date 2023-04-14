@@ -85,7 +85,7 @@ def get_magazine(magazine_id):
 def create_payment(subscription_id, price, time_amount,token):
     data = {'subscription_id': subscription_id, "price": price, "time_amount": time_amount}
     headers = {'Authorization': f"Token {token}"}
-    url = "http://172.20.0.4:8004/api/v1/create-payment/"
+    url = "http://172.20.0.5:8004/api/v1/create-payment/"
     response = requests.post(url=url, json=data,headers=headers)
     if response.status_code == 200:
         data = response.json()
