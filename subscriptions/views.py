@@ -1,4 +1,6 @@
 import requests
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +15,10 @@ class SubscriptionListAPIView(ListAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
+    @method_decorator(cache_page(60))
+    def get(self, *args, **kwargs):
+        return super().get(*args, **kwargs)
+
 
 class SubscriptionAPIView(APIView):
     def get_permissions(self):
@@ -21,6 +27,7 @@ class SubscriptionAPIView(APIView):
         else:
             return [IsAdminPermission()]
 
+    @method_decorator(cache_page(60))
     def get(self, request, pk):
         subscription = Subscription.objects.get(pk=pk)
         serializer = SubscriptionSerializer(subscription)
