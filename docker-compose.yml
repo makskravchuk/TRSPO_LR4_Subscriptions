@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  payments_service:
+  subscriptions_service:
     build: .
     command: python manage.py runserver 0.0.0.0:8003
     volumes:

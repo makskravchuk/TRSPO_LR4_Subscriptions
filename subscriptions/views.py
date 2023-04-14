@@ -1,6 +1,7 @@
 import requests
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +16,7 @@ class SubscriptionListAPIView(ListAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
+    @method_decorator(vary_on_headers("Authorization", ))
     @method_decorator(cache_page(60))
     def get(self, *args, **kwargs):
         return super().get(*args, **kwargs)
@@ -27,6 +29,7 @@ class SubscriptionAPIView(APIView):
         else:
             return [IsAdminPermission()]
 
+    @method_decorator(vary_on_headers("Authorization", ))
     @method_decorator(cache_page(60))
     def get(self, request, pk):
         subscription = Subscription.objects.get(pk=pk)
@@ -49,7 +52,8 @@ class SubscriptionAPIView(APIView):
                     subscription = Subscription.objects.filter(subscriber_id=user_id, magazine_id=magazine_id).first()
                     subscription.increase_end_date(time_amount, magazine['frequency'])
                     subscription.save()
-                status = create_payment(subscription_id=subscription.pk, price=magazine['price'], time_amount=time_amount,token=get_token(request))
+                status = create_payment(subscription_id=subscription.pk, price=magazine['price'],
+                                        time_amount=time_amount, token=get_token(request))
                 return Response(status=status)
         return Response(status=406)
 
@@ -89,11 +93,11 @@ def get_magazine(magazine_id):
     return None
 
 
-def create_payment(subscription_id, price, time_amount,token):
+def create_payment(subscription_id, price, time_amount, token):
     data = {'subscription_id': subscription_id, "price": price, "time_amount": time_amount}
     headers = {'Authorization': f"Token {token}"}
     url = "http://172.20.0.5:8004/api/v1/create-payment/"
-    response = requests.post(url=url, json=data,headers=headers)
+    response = requests.post(url=url, json=data, headers=headers)
     if response.status_code == 200:
         data = response.json()
         return data
